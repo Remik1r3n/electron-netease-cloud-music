@@ -26,22 +26,36 @@ jobs:
         run: |
           yarn install
 
-      - name: Build
-        env:
-          S3_ENDPOINT: ${{ secrets.S3_ENDPOINT }}
-          S3_BUCKET: ${{ secrets.S3_BUCKET }}
-          S3_ACCESS_KEY: ${{ secrets.S3_ACCESS_KEY }}
-          S3_SECRET_KEY: ${{ secrets.S3_SECRET_KEY }}
+      - name: Make Dist
         run: |
-          script/ci-build.sh ${{ github.event_name }}
+          yarn dist
 
-      - name: Upload asar
+      - name: Build for Linux
+        run: |
+          yarn build linux
+
+      - name: Build for MacOS
+        run: |
+          yarn build darwin
+
+      - name: Build for Windows
+        run: |
+          yarn build win32
+      
+      - name: Upload Linux Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: asar
-          path: build/*.asar
-
-      - name: Notify webhook
-        if: github.event_name == 'push' && github.ref_name == 'master'
-        run: |
-          curl --silent ${{ secrets.WEBHOOK_URL }}
+          name: linux
+          path: build/Electron NCM-linux-x64
+        
+      - name: Upload MacOS Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos
+          path: build/Electron NCM-darwin-x64
+          
+      - name: Upload Windows Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows
+          path: build/Electron NCM-win32-x64
